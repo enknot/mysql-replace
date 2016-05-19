@@ -89,19 +89,23 @@ foreach($tables as $table) {
             default: $typeOK = false; break;
         }
 
+        $debug = [];
         if($typeOK) { // Field type is OK ro replacement
             // create unique handle for update_sql array
             $handle = $table.'_'.$field;
             if($queryType=='replace') {
                 $sql[$handle]['sql'] = 'UPDATE '.$table.' SET '.$field.' = REPLACE('.$field.',\''.$search.'\',\''.$replace.'\')';
             } else {
-                $sql[$handle]['sql'] = 'SELECT * FROM '.$table.' WHERE '.$field.' REGEXP(\''.$search.'\')';
+               $debug[] = $sql[$handle]['sql'] = 'SELECT * FROM '.$table.' WHERE '.$field.' REGEXP(\''.$search.'\')';
             }
 
+            //debug
+//            echo "<pre>" . var_dump($debug) . "</pre> ";
+            
             // execute SQL
             $error = false;
             $query = @mysqli_query($MJCONN, $sql[$handle]['sql']) or $error = mysql_error();
-            $row_count = @mysql_affected_rows() or $row_count = 0;
+            $row_count = @mysqli_affected_rows($MJCONN) or $row_count = 0;
 
             // store the output (just in case)
             $sql[$handle]['result'] = $query;
