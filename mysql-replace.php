@@ -40,18 +40,22 @@ if($showErrors) {
 }
 
 // Create connectio to DB
-$MJCONN = mysql_pconnect($hostname, $username, $password) or trigger_error(mysql_error(),E_USER_ERROR);
-mysql_select_db($database,$MJCONN);
+$MJCONN = mysqli_connect($hostname, $username, $password, $database);
+
+
+if(!$MJCONN){
+    die("Connection failed");
+}
 
 // Get list of tables
 $table_sql = 'SHOW TABLES';
-$table_q = mysql_query($table_sql,$MJCONN) or die("Cannot Query DB: ".mysql_error());
-$tables_r = mysql_fetch_assoc($table_q);
+$table_q = mysqli_query($MJCONN, $table_sql) or die("Cannot Query DB: ".mysql_error());
+$tables_r = mysqli_fetch_assoc($table_q);
 $tables = array();
 
 do{
     $tables[] = $tables_r['Tables_in_'.strtolower($database)];
-}while($tables_r = mysql_fetch_assoc($table_q));
+}while($tables_r = mysqli_fetch_assoc($table_q));
 
 // create array to hold required SQL
 $use_sql = array();
@@ -68,8 +72,8 @@ $summary = '';
 foreach($tables as $table) {
     // GET A LIST OF FIELDS
     $field_sql = 'SHOW FIELDS FROM '.$table;
-    $field_q = mysql_query($field_sql,$MJCONN);
-    $field_r = mysql_fetch_assoc($field_q);
+    $field_q = mysqli_query($MJCONN, $field_sql);
+    $field_r = mysqli_fetch_assoc($field_q);
 
     // compile + run SQL
     do {
@@ -96,7 +100,7 @@ foreach($tables as $table) {
 
             // execute SQL
             $error = false;
-            $query = @mysql_query($sql[$handle]['sql'],$MJCONN) or $error = mysql_error();
+            $query = @mysqli_query($MJCONN, $sql[$handle]['sql']) or $error = mysql_error();
             $row_count = @mysql_affected_rows() or $row_count = 0;
 
             // store the output (just in case)
@@ -114,7 +118,7 @@ foreach($tables as $table) {
 
             $output .= "\n";
         }
-    }while($field_r = mysql_fetch_assoc($field_q));
+    }while($field_r = mysqli_fetch_assoc($field_q));
 }
 
 // write the output out to the page
